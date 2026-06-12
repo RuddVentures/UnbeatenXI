@@ -163,21 +163,30 @@ function App() {
     setScreen("results");
   }
 
+  function getPositionSuffix(position) {
+    if (position === 1) return "st";
+    if (position === 2) return "nd";
+    if (position === 3) return "rd";
+    return "th";
+  }
+
   function copyResult(userTeam) {
     const achievements = getAchievements(seasonData, userTeam).join(", ");
 
     const text = `UNBEATEN XI
 
-Your UnbeatenXI finished ${userTeam.position}.
+I finished ${userTeam.position}${getPositionSuffix(
+      userTeam.position
+    )} with ${userTeam.points} points on UnbeatenXI.
 
-Points: ${userTeam.points}
 Record: ${userTeam.wins}W ${userTeam.draws}D ${userTeam.losses}L
 Goals For: ${userTeam.goalsFor}
 Goals Against: ${userTeam.goalsAgainst}
+Goal Difference: ${userTeam.goalDifference}
 
 Top Scorer: ${seasonData.topScorer.name} (${seasonData.topScorer.goals})
 Top Assists: ${seasonData.topAssister.name} (${seasonData.topAssister.assists})
-Achievements: ${achievements}
+Achievements: ${achievements || "None"}
 
 Can your XI beat mine?`;
 
@@ -247,7 +256,10 @@ Can your XI beat mine?`;
 
   if (screen === "results") {
     const userTeam = seasonData.table.find(
-      (team) => team.club === "Your Ultimate XI"
+      (team) =>
+        team.club === "UnbeatenXI" ||
+        team.club === "Your UnbeatenXI" ||
+        team.club === "Your Ultimate XI"
     );
 
     const achievements = getAchievements(seasonData, userTeam);

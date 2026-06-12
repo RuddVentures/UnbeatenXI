@@ -1,3 +1,5 @@
+const USER_TEAM_NAME = "UnbeatenXI";
+
 function randomItem(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -52,7 +54,12 @@ function pickAssistProvider(outfieldPlayers, scorer) {
   return randomItem(availablePlayers.length ? availablePlayers : outfieldPlayers);
 }
 
-function generateGoals(teamRating, opponentRating, attackBonus = 0, defencePenalty = 0) {
+function generateGoals(
+  teamRating,
+  opponentRating,
+  attackBonus = 0,
+  defencePenalty = 0
+) {
   const ratingDifference = teamRating - opponentRating;
 
   let expectedGoals =
@@ -129,7 +136,7 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
 
   const tableTeams = [
     {
-      club: "Your Ultimate XI",
+      club: USER_TEAM_NAME,
       overall: adjustedUserRating,
       baseOverall: userTeam.overallRating,
       chemistryRating: userTeam.chemistryRating,
@@ -168,7 +175,8 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
     const opponentAttackBonus = (opponent.overall - 80) / 28;
 
     const userDefencePenalty = (opponent.overall - userTeam.defenceRating) / 35;
-    const opponentDefencePenalty = (userTeam.attackRating - opponent.overall) / 35;
+    const opponentDefencePenalty =
+      (userTeam.attackRating - opponent.overall) / 35;
 
     const userGoals = generateGoals(
       adjustedUserRating + homeAdvantage,
@@ -191,20 +199,25 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
       const assister = pickAssistProvider(outfieldPlayers, scorer);
 
       goalEvents.push({
-        team: "Your Ultimate XI",
+        team: USER_TEAM_NAME,
         scorer: getPlayerName(scorer),
         assist: getPlayerName(assister),
       });
 
       const scorerStats = playerStats.find((player) => player.id === scorer.id);
-      const assisterStats = playerStats.find((player) => player.id === assister.id);
+      const assisterStats = playerStats.find(
+        (player) => player.id === assister.id
+      );
 
       if (scorerStats) scorerStats.goals += 1;
       if (assisterStats) assisterStats.assists += 1;
     }
 
     if (opponentGoals === 0 && goalkeeper) {
-      const goalkeeperStats = playerStats.find((player) => player.id === goalkeeper.id);
+      const goalkeeperStats = playerStats.find(
+        (player) => player.id === goalkeeper.id
+      );
+
       if (goalkeeperStats) goalkeeperStats.cleanSheets += 1;
     }
 
@@ -255,7 +268,7 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
   });
 
   tableTeams.forEach((team) => {
-    if (team.club !== "Your Ultimate XI") {
+    if (team.club !== USER_TEAM_NAME) {
       const targetPoints = getOpponentSeasonPoints(team.overall);
       const remainingPoints = Math.max(0, targetPoints - team.points);
       const record = buildOpponentRecord(remainingPoints);
@@ -268,7 +281,9 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
 
       const goalQuality = team.overall - 75;
       team.goalsFor += Math.round(35 + goalQuality * 1.4 + Math.random() * 18);
-      team.goalsAgainst += Math.round(65 - goalQuality * 1.1 + Math.random() * 18);
+      team.goalsAgainst += Math.round(
+        65 - goalQuality * 1.1 + Math.random() * 18
+      );
     }
 
     team.goalDifference = team.goalsFor - team.goalsAgainst;
@@ -277,9 +292,11 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
   const table = tableTeams
     .sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
+
       if (b.goalDifference !== a.goalDifference) {
         return b.goalDifference - a.goalDifference;
       }
+
       return b.goalsFor - a.goalsFor;
     })
     .map((team, index) => ({
@@ -289,6 +306,7 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
 
   const topScorer = [...playerStats].sort((a, b) => b.goals - a.goals)[0];
   const topAssister = [...playerStats].sort((a, b) => b.assists - a.assists)[0];
+
   const cleanSheetLeader = [...playerStats].sort(
     (a, b) => b.cleanSheets - a.cleanSheets
   )[0];
