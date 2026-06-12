@@ -5,24 +5,25 @@ function HomeScreen({ onStartDraft }) {
       <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-teal-500/20 blur-3xl" />
       <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" />
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8 sm:p-6">
+        <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
           <div className="text-center lg:text-left">
-            <p className="text-teal-400 font-black tracking-[5px] mb-4">
+            <p className="text-teal-400 font-black tracking-[4px] mb-3 text-sm sm:text-base">
               FOOTBALL DRAFT SIMULATOR
             </p>
 
-            <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-5">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight mb-4">
               Unbeaten<span className="text-teal-400">XI</span>
             </h1>
 
-            <p className="text-2xl md:text-3xl font-bold text-slate-200 mb-4">
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-200 mb-4">
               Draft your squad. Build chemistry. Simulate the season.
             </p>
 
-            <p className="text-slate-400 max-w-xl mx-auto lg:mx-0 mb-8">
-              Pick your Ultimate XI from football icons, hidden gems and risky rotation players.
-              Then see if your team can survive a 38-game league season and go unbeaten.
+            <p className="text-slate-400 max-w-xl mx-auto lg:mx-0 mb-6">
+              Pick your XI from football icons, hidden gems and risky rotation
+              players. Then see if your team can survive a 38-game league
+              season and go unbeaten.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -33,7 +34,7 @@ function HomeScreen({ onStartDraft }) {
                 Start Draft
               </button>
 
-              <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-6 py-4 text-left">
+              <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-6 py-4 text-center sm:text-left">
                 <p className="text-xs text-slate-400 font-bold uppercase">
                   Challenge
                 </p>
@@ -44,8 +45,8 @@ function HomeScreen({ onStartDraft }) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-black/40">
-            <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 sm:p-6 shadow-2xl shadow-black/40">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5">
                 <p className="text-teal-400 text-sm font-black mb-1">01</p>
                 <h3 className="font-black text-xl">Draft</h3>
@@ -101,7 +102,7 @@ function HomeScreen({ onStartDraft }) {
           </div>
         </div>
 
-        <p className="absolute bottom-5 text-xs text-slate-600">
+        <p className="mt-6 text-center text-xs text-slate-600">
           UnbeatenXI Beta • Free football draft simulator
         </p>
       </div>
