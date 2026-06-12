@@ -24,10 +24,13 @@ function App() {
   const [hideRatings, setHideRatings] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [draftedPlayers, setDraftedPlayers] = useState({});
-  const [draftOptions, setDraftOptions] = useState([]);
+  const [draftOptionsBySlot, setDraftOptionsBySlot] = useState({});
   const [seasonData, setSeasonData] = useState(null);
   const [currentFixtureIndex, setCurrentFixtureIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  const draftOptions =
+    selectedSlot !== null ? draftOptionsBySlot[selectedSlot] || [] : [];
 
   useEffect(() => {
     if (screen !== "liveResults" || !seasonData) return;
@@ -47,7 +50,7 @@ function App() {
     setFormation("");
     setSelectedSlot(null);
     setDraftedPlayers({});
-    setDraftOptions([]);
+    setDraftOptionsBySlot({});
     setSeasonData(null);
     setCurrentFixtureIndex(0);
     setCopied(false);
@@ -75,7 +78,8 @@ function App() {
       canDraftPlayer(player, draftedPlayers)
     );
 
-    const availablePlayers = validPlayers.length > 0 ? validPlayers : positionPlayers;
+    const availablePlayers =
+      validPlayers.length > 0 ? validPlayers : positionPlayers;
 
     const weightedPool = [];
 
@@ -90,7 +94,8 @@ function App() {
     const selected = [];
 
     while (selected.length < count && weightedPool.length > 0) {
-      const randomPlayer = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+      const randomPlayer =
+        weightedPool[Math.floor(Math.random() * weightedPool.length)];
 
       if (!selected.some((player) => player.id === randomPlayer.id)) {
         selected.push(randomPlayer);
@@ -109,18 +114,28 @@ function App() {
   function openDraftOptions(slotIndex) {
     if (draftedPlayers[slotIndex]) return;
 
-    const position = formationPositions[formation][slotIndex];
     setSelectedSlot(slotIndex);
-    setDraftOptions(getRandomPlayers(position, 6));
-  }
 
-  function choosePlayer(player) {
-    if (!canDraftPlayer(player, draftedPlayers)) {
+    if (draftOptionsBySlot[slotIndex]) {
       return;
     }
 
+    const position = formationPositions[formation][slotIndex];
+    const generatedOptions = getRandomPlayers(position, 6);
+
+    setDraftOptionsBySlot((currentOptions) => ({
+      ...currentOptions,
+      [slotIndex]: generatedOptions,
+    }));
+  }
+
+  function choosePlayer(player) {
     if (selectedSlot === null) return;
     if (draftedPlayers[selectedSlot]) return;
+
+    if (!canDraftPlayer(player, draftedPlayers)) {
+      return;
+    }
 
     setDraftedPlayers({
       ...draftedPlayers,
@@ -128,7 +143,6 @@ function App() {
     });
 
     setSelectedSlot(null);
-    setDraftOptions([]);
   }
 
   function getCurrentTeamRatings() {
@@ -138,6 +152,7 @@ function App() {
   function runSimulation() {
     const ratings = getCurrentTeamRatings();
     const result = simulateSeason(ratings, clubs, draftedPlayers);
+
     setSeasonData(result);
     setCurrentFixtureIndex(0);
     setCopied(false);
@@ -151,9 +166,9 @@ function App() {
   function copyResult(userTeam) {
     const achievements = getAchievements(seasonData, userTeam).join(", ");
 
-    const text = `ULTIMATE 38
+    const text = `UNBEATEN XI
 
-Your Ultimate XI finished ${userTeam.position}.
+Your UnbeatenXI finished ${userTeam.position}.
 
 Points: ${userTeam.points}
 Record: ${userTeam.wins}W ${userTeam.draws}D ${userTeam.losses}L
@@ -164,7 +179,7 @@ Top Scorer: ${seasonData.topScorer.name} (${seasonData.topScorer.goals})
 Top Assists: ${seasonData.topAssister.name} (${seasonData.topAssister.assists})
 Achievements: ${achievements}
 
-Can your Ultimate XI beat mine?`;
+Can your XI beat mine?`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -211,17 +226,30 @@ Can your Ultimate XI beat mine?`;
   }
 
   if (screen === "rating") {
-    return <RatingScreen ratings={getCurrentTeamRatings()} onRunSimulation={runSimulation} />;
+    return (
+      <RatingScreen
+        ratings={getCurrentTeamRatings()}
+        onRunSimulation={runSimulation}
+      />
+    );
   }
 
   if (screen === "liveResults") {
     const fixture = seasonData.fixtures[currentFixtureIndex];
 
-    return <LiveResultsScreen fixture={fixture} onSkipToFinalTable={skipToFinalTable} />;
+    return (
+      <LiveResultsScreen
+        fixture={fixture}
+        onSkipToFinalTable={skipToFinalTable}
+      />
+    );
   }
 
   if (screen === "results") {
-    const userTeam = seasonData.table.find((team) => team.club === "Your Ultimate XI");
+    const userTeam = seasonData.table.find(
+      (team) => team.club === "Your Ultimate XI"
+    );
+
     const achievements = getAchievements(seasonData, userTeam);
 
     return (
