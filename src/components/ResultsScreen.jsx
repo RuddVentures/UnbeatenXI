@@ -1,3 +1,25 @@
+function calculateUnbeatenXIScore(userTeam, seasonData, achievements) {
+  let score = 0;
+
+  score += userTeam.points * 4;
+  score += Math.max(0, 21 - userTeam.position) * 10;
+  score += userTeam.wins * 3;
+  score += Math.max(0, userTeam.goalDifference) * 2;
+
+  if (userTeam.position === 1) score += 120;
+  if (userTeam.position <= 4) score += 60;
+  if (userTeam.losses === 0) score += 120;
+  if (userTeam.position === 1 && userTeam.losses === 0) score += 180;
+
+  score += achievements.length * 20;
+
+  if (seasonData.adjustedUserRating) {
+    score += seasonData.adjustedUserRating;
+  }
+
+  return Math.max(0, Math.min(1000, Math.round(score)));
+}
+
 function ResultsScreen({
   seasonData,
   userTeam,
@@ -7,6 +29,12 @@ function ResultsScreen({
   onStartNewDraft,
 }) {
   const cleanSheetLeader = seasonData.cleanSheetLeader;
+
+  const unbeatenXIScore = calculateUnbeatenXIScore(
+    userTeam,
+    seasonData,
+    achievements
+  );
 
   function getVerdict() {
     if (userTeam.position === 1 && userTeam.losses === 0) {
@@ -87,6 +115,7 @@ function ResultsScreen({
                   <p className="text-sm text-teal-400 font-black uppercase tracking-[3px]">
                     Season Verdict
                   </p>
+
                   <h2 className="text-3xl sm:text-4xl font-black">
                     {verdict.title}
                   </h2>
@@ -100,9 +129,11 @@ function ResultsScreen({
               <p className="text-slate-400 text-sm font-bold uppercase">
                 Final Position
               </p>
+
               <p className="text-7xl font-black text-teal-400">
                 {userTeam.position}
               </p>
+
               <p className="text-slate-500 text-sm">out of 20</p>
             </div>
           </div>
@@ -165,8 +196,19 @@ function ResultsScreen({
           <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
             <h2 className="text-2xl font-black mb-4">Share Result</h2>
 
+            <div className="rounded-3xl border border-yellow-400 bg-yellow-500/10 p-5 text-center mb-4">
+              <p className="text-sm font-black text-yellow-400 uppercase tracking-[3px]">
+                UnbeatenXI Score
+              </p>
+
+              <p className="text-6xl font-black mt-2">{unbeatenXIScore}</p>
+
+              <p className="text-xs text-slate-400 mt-1">out of 1000</p>
+            </div>
+
             <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 mb-4">
               <p className="text-sm text-slate-400 mb-1">Share line</p>
+
               <p className="font-black">
                 I finished {userTeam.position}
                 {getPositionSuffix(userTeam.position)} with {userTeam.points}{" "}
@@ -229,6 +271,7 @@ function ResultsScreen({
                     <td className="py-3 pr-4 font-bold whitespace-nowrap">
                       {player.name}
                     </td>
+
                     <td className="pr-4">{player.position}</td>
                     <td className="pr-4">{player.goals}</td>
                     <td className="pr-4">{player.assists}</td>
@@ -262,6 +305,7 @@ function ResultsScreen({
                 {seasonData.table.map((team) => {
                   const isUserTeam =
                     team.club === "Your Ultimate XI" ||
+                    team.club === "Your UnbeatenXI" ||
                     team.club === "UnbeatenXI" ||
                     team.club === userTeam.club;
 

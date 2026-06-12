@@ -151,7 +151,7 @@ function App() {
 
   function runSimulation() {
     const ratings = getCurrentTeamRatings();
-    const result = simulateSeason(ratings, clubs, draftedPlayers);
+    const result = simulateSeason(ratings, clubs, draftedPlayers, difficulty);
 
     setSeasonData(result);
     setCurrentFixtureIndex(0);
@@ -179,6 +179,7 @@ I finished ${userTeam.position}${getPositionSuffix(
       userTeam.position
     )} with ${userTeam.points} points on UnbeatenXI.
 
+Difficulty: ${difficulty.toUpperCase()}
 Record: ${userTeam.wins}W ${userTeam.draws}D ${userTeam.losses}L
 Goals For: ${userTeam.goalsFor}
 Goals Against: ${userTeam.goalsAgainst}

@@ -20,6 +20,52 @@ function getChemistryBoost(chemistryRating = 0) {
   return -3;
 }
 
+function getDifficultySettings(difficulty = "medium") {
+  const settings = {
+    easy: {
+      userRatingModifier: 1.5,
+      opponentRatingModifier: -0.75,
+      opponentPointsModifier: -4,
+      homeAdvantage: 1.4,
+      awayPenalty: -0.5,
+      userAttackDivisor: 23,
+      opponentAttackDivisor: 31,
+      userDefenceDivisor: 37,
+      opponentDefenceDivisor: 33,
+      resultVariance: 1.15,
+      opponentPointsCap: 86,
+    },
+    medium: {
+      userRatingModifier: 0,
+      opponentRatingModifier: 0,
+      opponentPointsModifier: 0,
+      homeAdvantage: 1.1,
+      awayPenalty: -0.75,
+      userAttackDivisor: 25,
+      opponentAttackDivisor: 29,
+      userDefenceDivisor: 38,
+      opponentDefenceDivisor: 34,
+      resultVariance: 1.05,
+      opponentPointsCap: 90,
+    },
+    hard: {
+      userRatingModifier: -1.5,
+      opponentRatingModifier: 1.25,
+      opponentPointsModifier: 5,
+      homeAdvantage: 0.8,
+      awayPenalty: -1.1,
+      userAttackDivisor: 30,
+      opponentAttackDivisor: 25,
+      userDefenceDivisor: 44,
+      opponentDefenceDivisor: 30,
+      resultVariance: 0.95,
+      opponentPointsCap: 94,
+    },
+  };
+
+  return settings[difficulty] || settings.medium;
+}
+
 function pickGoalScorer(outfieldPlayers) {
   const attackers = outfieldPlayers.filter((player) =>
     ["ST", "LW", "RW", "CAM"].includes(player.position)
@@ -58,32 +104,41 @@ function generateGoals(
   teamRating,
   opponentRating,
   attackBonus = 0,
-  defencePenalty = 0
+  defencePenalty = 0,
+  resultVariance = 1
 ) {
   const ratingDifference = teamRating - opponentRating;
 
   let expectedGoals =
-    1.35 +
-    ratingDifference / 12 +
+    1.25 +
+    ratingDifference / 15 +
     attackBonus -
     defencePenalty +
-    Math.random() * 1.1;
+    Math.random() * resultVariance;
 
-  expectedGoals = clamp(expectedGoals, 0, 4.5);
+  expectedGoals = clamp(expectedGoals, 0, 4.25);
 
   let goals = Math.round(expectedGoals);
 
-  if (Math.random() < 0.08) goals = 0;
-  if (Math.random() < 0.1) goals += 1;
+  if (Math.random() < 0.1) goals = 0;
+  if (Math.random() < 0.08) goals += 1;
 
   return clamp(goals, 0, 6);
 }
 
-function getOpponentSeasonPoints(overall) {
-  const basePoints = 38 + (overall - 78) * 2.2;
-  const randomSwing = Math.round(Math.random() * 18 - 9);
+function getOpponentSeasonPoints(overall, difficultySettings) {
+  const basePoints = 39 + (overall - 78) * 2.45;
+  const randomSwing = Math.round(Math.random() * 16 - 8);
 
-  return clamp(Math.round(basePoints + randomSwing), 25, 88);
+  return clamp(
+    Math.round(
+      basePoints +
+        randomSwing +
+        difficultySettings.opponentPointsModifier
+    ),
+    25,
+    difficultySettings.opponentPointsCap
+  );
 }
 
 function buildOpponentRecord(points) {
@@ -101,21 +156,31 @@ function buildOpponentRecord(points) {
   return { wins, draws, losses };
 }
 
-export function simulateSeason(userTeam, clubs, draftedPlayers) {
+export function simulateSeason(
+  userTeam,
+  clubs,
+  draftedPlayers,
+  difficulty = "medium"
+) {
+  const difficultySettings = getDifficultySettings(difficulty);
   const chemistryBoost = getChemistryBoost(userTeam.chemistryRating);
 
   const balancedUserRating =
     userTeam.overallRating +
     chemistryBoost +
-    (userTeam.attackRating - 80) * 0.08 +
-    (userTeam.midfieldRating - 80) * 0.05 +
-    (userTeam.defenceRating - 80) * 0.06 +
-    (userTeam.goalkeeperRating - 80) * 0.04;
+    difficultySettings.userRatingModifier +
+    (userTeam.attackRating - 80) * 0.06 +
+    (userTeam.midfieldRating - 80) * 0.04 +
+    (userTeam.defenceRating - 80) * 0.05 +
+    (userTeam.goalkeeperRating - 80) * 0.03;
 
   const adjustedUserRating = Math.round(balancedUserRating);
 
   const shuffledClubs = [...clubs].sort(() => Math.random() - 0.5);
-  const opponents = shuffledClubs.slice(0, 19);
+  const opponents = shuffledClubs.slice(0, 19).map((club) => ({
+    ...club,
+    overall: club.overall + difficultySettings.opponentRatingModifier,
+  }));
 
   const squad = Object.values(draftedPlayers);
   const outfieldPlayers = squad.filter((player) => player.position !== "GK");
@@ -141,6 +206,7 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
       baseOverall: userTeam.overallRating,
       chemistryRating: userTeam.chemistryRating,
       chemistryBoost,
+      difficulty,
       played: 0,
       wins: 0,
       draws: 0,
@@ -169,27 +235,38 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
 
   opponentList.forEach((opponent, index) => {
     const isHome = index % 2 === 0;
-    const homeAdvantage = isHome ? 1.5 : -0.75;
+    const venueModifier = isHome
+      ? difficultySettings.homeAdvantage
+      : difficultySettings.awayPenalty;
 
-    const userAttackBonus = (userTeam.attackRating - 80) / 22;
-    const opponentAttackBonus = (opponent.overall - 80) / 28;
+    const userAttackBonus =
+      (userTeam.attackRating - 80) / difficultySettings.userAttackDivisor;
 
-    const userDefencePenalty = (opponent.overall - userTeam.defenceRating) / 35;
+    const opponentAttackBonus =
+      (opponent.overall - 80) / difficultySettings.opponentAttackDivisor;
+
+    const userDefencePenalty =
+      (opponent.overall - userTeam.defenceRating) /
+      difficultySettings.userDefenceDivisor;
+
     const opponentDefencePenalty =
-      (userTeam.attackRating - opponent.overall) / 35;
+      (userTeam.attackRating - opponent.overall) /
+      difficultySettings.opponentDefenceDivisor;
 
     const userGoals = generateGoals(
-      adjustedUserRating + homeAdvantage,
+      adjustedUserRating + venueModifier,
       opponent.overall,
       userAttackBonus,
-      userDefencePenalty
+      userDefencePenalty,
+      difficultySettings.resultVariance
     );
 
     const opponentGoals = generateGoals(
       opponent.overall,
-      adjustedUserRating + homeAdvantage,
+      adjustedUserRating + venueModifier,
       opponentAttackBonus,
-      opponentDefencePenalty
+      opponentDefencePenalty,
+      difficultySettings.resultVariance
     );
 
     const goalEvents = [];
@@ -269,7 +346,11 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
 
   tableTeams.forEach((team) => {
     if (team.club !== USER_TEAM_NAME) {
-      const targetPoints = getOpponentSeasonPoints(team.overall);
+      const targetPoints = getOpponentSeasonPoints(
+        team.overall,
+        difficultySettings
+      );
+
       const remainingPoints = Math.max(0, targetPoints - team.points);
       const record = buildOpponentRecord(remainingPoints);
 
@@ -280,9 +361,10 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
       team.played = 38;
 
       const goalQuality = team.overall - 75;
-      team.goalsFor += Math.round(35 + goalQuality * 1.4 + Math.random() * 18);
+
+      team.goalsFor += Math.round(36 + goalQuality * 1.45 + Math.random() * 18);
       team.goalsAgainst += Math.round(
-        65 - goalQuality * 1.1 + Math.random() * 18
+        64 - goalQuality * 1.05 + Math.random() * 18
       );
     }
 
@@ -320,5 +402,6 @@ export function simulateSeason(userTeam, clubs, draftedPlayers) {
     cleanSheetLeader,
     chemistryBoost,
     adjustedUserRating,
+    difficulty,
   };
 }
