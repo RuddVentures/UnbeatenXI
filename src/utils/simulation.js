@@ -132,9 +132,7 @@ function getOpponentSeasonPoints(overall, difficultySettings) {
 
   return clamp(
     Math.round(
-      basePoints +
-        randomSwing +
-        difficultySettings.opponentPointsModifier
+      basePoints + randomSwing + difficultySettings.opponentPointsModifier
     ),
     25,
     difficultySettings.opponentPointsCap
@@ -154,6 +152,94 @@ function buildOpponentRecord(points) {
   }
 
   return { wins, draws, losses };
+}
+
+function sortTable(teams) {
+  return [...teams]
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+
+      if (b.goalDifference !== a.goalDifference) {
+        return b.goalDifference - a.goalDifference;
+      }
+
+      return b.goalsFor - a.goalsFor;
+    })
+    .map((team, index) => ({
+      ...team,
+      position: index + 1,
+    }));
+}
+
+function getMovement(previousPositions, club, currentPosition) {
+  if (!previousPositions || !previousPositions[club]) {
+    return "same";
+  }
+
+  const previousPosition = previousPositions[club];
+
+  if (currentPosition < previousPosition) return "up";
+  if (currentPosition > previousPosition) return "down";
+  return "same";
+}
+
+function buildLiveTableSnapshot(tableTeams, matchNumber, previousPositions) {
+  const progress = matchNumber / 38;
+
+  const liveTeams = tableTeams.map((team) => {
+    if (team.club === USER_TEAM_NAME) {
+      return {
+        ...team,
+        played: matchNumber,
+        goalDifference: team.goalsFor - team.goalsAgainst,
+      };
+    }
+
+    const targetPoints = team.targetSeasonPoints || 45;
+    const simulatedPoints = Math.round(targetPoints * progress);
+    const minimumPoints = team.points;
+    const livePoints = Math.max(minimumPoints, simulatedPoints);
+
+    const estimatedGoalsFor = Math.round(
+      team.goalsFor + (team.overall - 70) * progress + 18 * progress
+    );
+
+    const estimatedGoalsAgainst = Math.round(
+      team.goalsAgainst + (95 - team.overall) * progress
+    );
+
+    const wins = Math.floor(livePoints / 3);
+    const draws = livePoints - wins * 3;
+    const losses = Math.max(0, matchNumber - wins - draws);
+
+    return {
+      ...team,
+      played: matchNumber,
+      wins,
+      draws,
+      losses,
+      points: livePoints,
+      goalsFor: estimatedGoalsFor,
+      goalsAgainst: estimatedGoalsAgainst,
+      goalDifference: estimatedGoalsFor - estimatedGoalsAgainst,
+    };
+  });
+
+  const sortedLiveTable = sortTable(liveTeams).map((team) => ({
+    ...team,
+    movement: getMovement(previousPositions, team.club, team.position),
+  }));
+
+  return sortedLiveTable;
+}
+
+function getRecentForm(fixtures) {
+  return fixtures.slice(-5).map((fixture) => fixture.result);
+}
+
+function getProjectedPoints(currentPoints, matchNumber) {
+  if (matchNumber === 0) return 0;
+  return clamp(Math.round((currentPoints / matchNumber) * 38), 0, 114);
 }
 
 export function simulateSeason(
@@ -177,10 +263,19 @@ export function simulateSeason(
   const adjustedUserRating = Math.round(balancedUserRating);
 
   const shuffledClubs = [...clubs].sort(() => Math.random() - 0.5);
-  const opponents = shuffledClubs.slice(0, 19).map((club) => ({
-    ...club,
-    overall: club.overall + difficultySettings.opponentRatingModifier,
-  }));
+
+  const opponents = shuffledClubs.slice(0, 19).map((club) => {
+    const adjustedOverall = club.overall + difficultySettings.opponentRatingModifier;
+
+    return {
+      ...club,
+      overall: adjustedOverall,
+      targetSeasonPoints: getOpponentSeasonPoints(
+        adjustedOverall,
+        difficultySettings
+      ),
+    };
+  });
 
   const squad = Object.values(draftedPlayers);
   const outfieldPlayers = squad.filter((player) => player.position !== "GK");
@@ -198,6 +293,7 @@ export function simulateSeason(
   }));
 
   const fixtures = [];
+  let previousPositions = null;
 
   const tableTeams = [
     {
@@ -219,6 +315,7 @@ export function simulateSeason(
     ...opponents.map((club) => ({
       club: club.club,
       overall: club.overall,
+      targetSeasonPoints: club.targetSeasonPoints,
       played: 0,
       wins: 0,
       draws: 0,
@@ -333,24 +430,46 @@ export function simulateSeason(
       opponentTeam.losses += 1;
     }
 
+    opponentTeam.goalDifference =
+      opponentTeam.goalsFor - opponentTeam.goalsAgainst;
+
+    userTableTeam.goalDifference =
+      userTableTeam.goalsFor - userTableTeam.goalsAgainst;
+
+    const matchNumber = index + 1;
+    const liveTable = buildLiveTableSnapshot(
+      tableTeams,
+      matchNumber,
+      previousPositions
+    );
+
+    previousPositions = liveTable.reduce((positions, team) => {
+      positions[team.club] = team.position;
+      return positions;
+    }, {});
+
+    const userLiveTeam = liveTable.find((team) => team.club === USER_TEAM_NAME);
+
     fixtures.push({
-      matchNumber: index + 1,
+      matchNumber,
       opponent: opponent.club,
       homeAway: isHome ? "Home" : "Away",
       userGoals,
       opponentGoals,
       result,
       goalEvents,
+      liveTable,
+      userLivePosition: userLiveTeam?.position || 20,
+      userPositionMovement: userLiveTeam?.movement || "same",
+      recentForm: getRecentForm([...fixtures, { result }]),
+      projectedPoints: getProjectedPoints(userTableTeam.points, matchNumber),
+      currentPoints: userTableTeam.points,
     });
   });
 
   tableTeams.forEach((team) => {
     if (team.club !== USER_TEAM_NAME) {
-      const targetPoints = getOpponentSeasonPoints(
-        team.overall,
-        difficultySettings
-      );
-
+      const targetPoints = team.targetSeasonPoints || 45;
       const remainingPoints = Math.max(0, targetPoints - team.points);
       const record = buildOpponentRecord(remainingPoints);
 
@@ -371,20 +490,7 @@ export function simulateSeason(
     team.goalDifference = team.goalsFor - team.goalsAgainst;
   });
 
-  const table = tableTeams
-    .sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-
-      if (b.goalDifference !== a.goalDifference) {
-        return b.goalDifference - a.goalDifference;
-      }
-
-      return b.goalsFor - a.goalsFor;
-    })
-    .map((team, index) => ({
-      ...team,
-      position: index + 1,
-    }));
+  const table = sortTable(tableTeams);
 
   const topScorer = [...playerStats].sort((a, b) => b.goals - a.goals)[0];
   const topAssister = [...playerStats].sort((a, b) => b.assists - a.assists)[0];
