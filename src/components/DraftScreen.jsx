@@ -99,7 +99,9 @@ function DraftScreen({
     if (selectedSlot === null) {
       return (
         <div className="rounded-[2rem] border border-dashed border-slate-700 bg-slate-950/70 p-6 text-center text-sm text-slate-400">
-          <p className="text-lg font-black text-white mb-2">Choose a Position</p>
+          <p className="text-lg font-black text-white mb-2">
+            Choose a Position
+          </p>
           Tap a position from your XI to reveal six locked draft options.
         </div>
       );
@@ -203,8 +205,8 @@ function DraftScreen({
       <button
         onClick={() => onOpenDraftOptions(slotIndex)}
         disabled={!!player}
-        className={`relative overflow-hidden w-full rounded-[1.2rem] border text-left transition shadow-lg ${
-          compact ? "p-2.5 sm:p-3" : "p-4"
+        className={`relative overflow-hidden w-full rounded-[1rem] sm:rounded-[1.2rem] border text-left transition shadow-lg ${
+          compact ? "p-1.5 sm:p-3 min-h-[76px] sm:min-h-[96px]" : "p-4"
         } ${
           active
             ? "border-teal-300 bg-teal-500/20 shadow-teal-500/20 scale-[1.02]"
@@ -215,11 +217,11 @@ function DraftScreen({
       >
         <div className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/5 blur-2xl" />
 
-        <div className="relative z-10">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
+        <div className="relative z-10 min-w-0">
+          <div className="flex items-start justify-between gap-1 sm:gap-2">
+            <div className="min-w-0 flex-1">
               <p
-                className={`text-[10px] sm:text-xs font-black uppercase tracking-[2px] ${
+                className={`text-[9px] sm:text-xs font-black uppercase tracking-[1px] sm:tracking-[2px] truncate ${
                   player ? style.text : "text-teal-300"
                 }`}
               >
@@ -228,18 +230,20 @@ function DraftScreen({
 
               {player ? (
                 <>
-                  <p className="text-xs sm:text-sm font-black mt-1 leading-tight truncate">
+                  <p className="text-[10px] sm:text-sm font-black mt-1 leading-tight truncate max-w-full">
                     {player.name}
                   </p>
 
-                  <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+                  <p className="hidden sm:block text-[10px] sm:text-xs text-slate-400 truncate max-w-full">
                     {player.club}
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-xs sm:text-sm font-black mt-1">Select</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500">
+                  <p className="text-[10px] sm:text-sm font-black mt-1 truncate">
+                    Select
+                  </p>
+                  <p className="hidden sm:block text-[10px] sm:text-xs text-slate-500">
                     Tap slot
                   </p>
                 </>
@@ -248,7 +252,7 @@ function DraftScreen({
 
             {player && (
               <div
-                className={`shrink-0 rounded-xl px-2 py-1 text-sm sm:text-base font-black ${style.badge}`}
+                className={`shrink-0 rounded-lg px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-base font-black ${style.badge}`}
               >
                 {hideRatings ? "?" : player.rating}
               </div>
@@ -259,32 +263,42 @@ function DraftScreen({
     );
   }
 
+  function getRowClass(rowLength) {
+    if (rowLength === 1) {
+      return "grid-cols-1 max-w-[140px] sm:max-w-[190px] mx-auto w-full";
+    }
+
+    if (rowLength === 2) {
+      return "grid-cols-2 max-w-[300px] sm:max-w-[460px] mx-auto w-full";
+    }
+
+    if (rowLength === 3) {
+      return "grid-cols-3 max-w-[390px] sm:max-w-[700px] mx-auto w-full";
+    }
+
+    if (rowLength === 4) {
+      return "grid-cols-4 gap-1 sm:gap-3 w-full";
+    }
+
+    return "grid-cols-5 gap-1 sm:gap-3 w-full";
+  }
+
   function PitchView() {
     return (
-      <div className="relative overflow-hidden rounded-[2rem] border border-teal-400/30 bg-emerald-950/30 p-4 sm:p-6 min-h-[640px] shadow-inner">
+      <div className="relative overflow-hidden rounded-[2rem] border border-teal-400/30 bg-emerald-950/30 p-2.5 sm:p-6 min-h-[500px] sm:min-h-[640px] shadow-inner">
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,_rgba(20,184,166,0.08)_0%,_rgba(20,184,166,0.02)_100%)]" />
-        <div className="absolute inset-4 rounded-[1.5rem] border-2 border-teal-300/20" />
-        <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-teal-300/20" />
+        <div className="absolute inset-3 sm:inset-4 rounded-[1.5rem] border-2 border-teal-300/20" />
+        <div className="absolute left-1/2 top-1/2 h-28 w-28 sm:h-36 sm:w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-teal-300/20" />
         <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-300/30" />
-        <div className="absolute left-1/2 bottom-4 h-20 w-44 -translate-x-1/2 rounded-t-[2rem] border-2 border-b-0 border-teal-300/20" />
-        <div className="absolute left-1/2 top-4 h-20 w-44 -translate-x-1/2 rounded-b-[2rem] border-2 border-t-0 border-teal-300/20" />
-        <div className="absolute left-4 right-4 top-1/2 h-px bg-teal-300/20" />
+        <div className="absolute left-1/2 bottom-3 sm:bottom-4 h-16 sm:h-20 w-36 sm:w-44 -translate-x-1/2 rounded-t-[2rem] border-2 border-b-0 border-teal-300/20" />
+        <div className="absolute left-1/2 top-3 sm:top-4 h-16 sm:h-20 w-36 sm:w-44 -translate-x-1/2 rounded-b-[2rem] border-2 border-t-0 border-teal-300/20" />
+        <div className="absolute left-3 sm:left-4 right-3 sm:right-4 top-1/2 h-px bg-teal-300/20" />
 
-        <div className="relative z-10 flex min-h-[600px] flex-col justify-between gap-4">
+        <div className="relative z-10 flex min-h-[480px] sm:min-h-[600px] flex-col justify-between gap-2 sm:gap-4">
           {pitchLayout.map((row, rowIndex) => (
             <div
               key={`row-${rowIndex}`}
-              className={`grid gap-3 ${
-                row.length === 1
-                  ? "grid-cols-1 max-w-[190px] mx-auto w-full"
-                  : row.length === 2
-                  ? "grid-cols-2 max-w-[460px] mx-auto w-full"
-                  : row.length === 3
-                  ? "grid-cols-3 max-w-[700px] mx-auto w-full"
-                  : row.length === 4
-                  ? "grid-cols-4 w-full"
-                  : "grid-cols-5 w-full"
-              }`}
+              className={`grid ${getRowClass(row.length)}`}
             >
               {row.map((slotIndex) => (
                 <PlayerSlot
@@ -353,7 +367,12 @@ function DraftScreen({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <InfoPanel title="Club Limit" value={squadRules.maxPerClub} text="Max per club" />
+              <InfoPanel
+                title="Club Limit"
+                value={squadRules.maxPerClub}
+                text="Max per club"
+              />
+
               <InfoPanel
                 title="Elite / Top"
                 value={`${ruleCounts.eliteOrTopCount}/${squadRules.maxEliteOrTop}`}
@@ -394,15 +413,13 @@ function DraftScreen({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 lg:gap-8 items-start">
-          <div className="rounded-[2rem] border border-slate-800 bg-slate-900/80 backdrop-blur p-4 sm:p-6 shadow-2xl shadow-black/30">
+          <div className="rounded-[2rem] border border-slate-800 bg-slate-900/80 backdrop-blur p-3 sm:p-6 shadow-2xl shadow-black/30">
             <div className="flex items-center justify-between gap-4 mb-5">
               <div>
                 <p className="text-xs text-teal-300 font-black uppercase tracking-[3px]">
                   Formation Pitch
                 </p>
-                <h2 className="text-2xl sm:text-3xl font-black">
-                  Your Team
-                </h2>
+                <h2 className="text-2xl sm:text-3xl font-black">Your Team</h2>
               </div>
 
               <div className="rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-center">
