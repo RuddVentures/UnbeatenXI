@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { players } from "./data/players";
 import { additionalPlayers } from "./data/additionalPlayers";
+import { extraPlayers } from "./data/extraPlayers";
 import { clubs } from "./data/clubs";
 import { simulateSeason } from "./utils/simulation";
 import { calculateTeamRatings } from "./utils/teamRatings";
@@ -15,7 +16,7 @@ import RatingScreen from "./components/RatingScreen";
 import LiveResultsScreen from "./components/LiveResultsScreen";
 import ResultsScreen from "./components/ResultsScreen";
 
-const fullPlayerPool = [...players, ...additionalPlayers];
+const fullPlayerPool = [...players, ...additionalPlayers, ...extraPlayers];
 
 function App() {
   const [screen, setScreen] = useState("home");
@@ -57,14 +58,81 @@ function App() {
     setScreen("setup");
   }
 
-  function getTierWeight(tier) {
-    const weights = {
-      easy: { elite: 6, top: 6, good: 5, rotation: 3, weak: 2 },
-      medium: { elite: 3, top: 4, good: 5, rotation: 3, weak: 2 },
-      hard: { elite: 2, top: 3, good: 5, rotation: 4, weak: 3 },
+  function shuffleList(list) {
+    return [...list].sort(() => Math.random() - 0.5);
+  }
+
+  function getDraftTierPlan() {
+    const plans = {
+      easy: ["eliteTop", "eliteTop", "good", "good", "rotation", "weak"],
+      medium: ["eliteTop", "good", "good", "rotation", "rotation", "weak"],
+      hard: ["eliteTop", "good", "rotation", "rotation", "weak", "weak"],
     };
 
-    return weights[difficulty][tier] || 1;
+    return plans[difficulty] || plans.medium;
+  }
+
+  function playerMatchesTierGroup(player, tierGroup) {
+    if (tierGroup === "eliteTop") {
+      return player.tier === "elite" || player.tier === "top";
+    }
+
+    return player.tier === tierGroup;
+  }
+
+  function getFallbackWeight(player) {
+    const weights = {
+      easy: { elite: 7, top: 6, good: 4, rotation: 2, weak: 1 },
+      medium: { elite: 3, top: 4, good: 5, rotation: 4, weak: 2 },
+      hard: { elite: 1, top: 2, good: 4, rotation: 5, weak: 4 },
+    };
+
+    return weights[difficulty]?.[player.tier] || 1;
+  }
+
+  function pickRandomPlayer(pool, alreadySelected) {
+    const available = pool.filter(
+      (player) => !alreadySelected.some((selected) => selected.id === player.id)
+    );
+
+    if (available.length === 0) return null;
+
+    return available[Math.floor(Math.random() * available.length)];
+  }
+
+  function getFallbackPlayers(pool, selected, count) {
+    const weightedPool = [];
+
+    pool.forEach((player) => {
+      if (selected.some((selectedPlayer) => selectedPlayer.id === player.id)) {
+        return;
+      }
+
+      const weight = getFallbackWeight(player);
+
+      for (let i = 0; i < weight; i++) {
+        weightedPool.push(player);
+      }
+    });
+
+    const fallbackSelected = [...selected];
+
+    while (fallbackSelected.length < count && weightedPool.length > 0) {
+      const randomPlayer =
+        weightedPool[Math.floor(Math.random() * weightedPool.length)];
+
+      if (!fallbackSelected.some((player) => player.id === randomPlayer.id)) {
+        fallbackSelected.push(randomPlayer);
+      }
+
+      for (let i = weightedPool.length - 1; i >= 0; i--) {
+        if (weightedPool[i].id === randomPlayer.id) {
+          weightedPool.splice(i, 1);
+        }
+      }
+    }
+
+    return fallbackSelected;
   }
 
   function getRandomPlayers(position, count = 6) {
@@ -81,34 +149,30 @@ function App() {
     const availablePlayers =
       validPlayers.length > 0 ? validPlayers : positionPlayers;
 
-    const weightedPool = [];
+    const tierPlan = getDraftTierPlan();
+    const selected = [];
 
-    availablePlayers.forEach((player) => {
-      const weight = getTierWeight(player.tier);
+    tierPlan.forEach((tierGroup) => {
+      const tierPool = shuffleList(
+        availablePlayers.filter((player) =>
+          playerMatchesTierGroup(player, tierGroup)
+        )
+      );
 
-      for (let i = 0; i < weight; i++) {
-        weightedPool.push(player);
+      const selectedPlayer = pickRandomPlayer(tierPool, selected);
+
+      if (selectedPlayer) {
+        selected.push(selectedPlayer);
       }
     });
 
-    const selected = [];
+    const completedSelection = getFallbackPlayers(
+      availablePlayers,
+      selected,
+      count
+    );
 
-    while (selected.length < count && weightedPool.length > 0) {
-      const randomPlayer =
-        weightedPool[Math.floor(Math.random() * weightedPool.length)];
-
-      if (!selected.some((player) => player.id === randomPlayer.id)) {
-        selected.push(randomPlayer);
-      }
-
-      for (let i = weightedPool.length - 1; i >= 0; i--) {
-        if (weightedPool[i].id === randomPlayer.id) {
-          weightedPool.splice(i, 1);
-        }
-      }
-    }
-
-    return selected;
+    return completedSelection.slice(0, count);
   }
 
   function openDraftOptions(slotIndex) {
