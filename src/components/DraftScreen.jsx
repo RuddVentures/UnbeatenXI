@@ -60,6 +60,21 @@ function getChemistryLabel(chemistry) {
   return "Poor Chemistry";
 }
 
+function getPitchLayout(formation) {
+  const layouts = {
+    "4-3-3": [[8, 9, 10], [5, 6, 7], [1, 2, 3, 4], [0]],
+    "4-4-2": [[9, 10], [5, 6, 7, 8], [1, 2, 3, 4], [0]],
+    "4-2-3-1": [[10], [8, 7, 9], [5, 6], [1, 2, 3, 4], [0]],
+    "3-5-2": [[9, 10], [4, 5, 6, 7, 8], [1, 2, 3], [0]],
+    "5-2-3": [[8, 9, 10], [6, 7], [1, 2, 3, 4, 5], [0]],
+    "3-4-3": [[8, 9, 10], [4, 5, 6, 7], [1, 2, 3], [0]],
+    "4-1-2-1-2": [[9, 10], [8], [6, 7], [5], [1, 2, 3, 4], [0]],
+    "2-3-5": [[6, 7, 8, 9, 10], [3, 4, 5], [1, 2], [0]],
+  };
+
+  return layouts[formation] || null;
+}
+
 function DraftScreen({
   formation,
   difficulty,
@@ -78,6 +93,7 @@ function DraftScreen({
   const liveChemistry = calculateChemistry(draftedPlayers);
   const selectedPosition = selectedSlot !== null ? positions[selectedSlot] : null;
   const chemistryWidth = `${Math.min(100, Math.max(0, liveChemistry))}%`;
+  const pitchLayout = getPitchLayout(formation);
 
   function DraftOptionsList({ mobile = false }) {
     if (selectedSlot === null) {
@@ -123,7 +139,9 @@ function DraftScreen({
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="min-w-0">
-                      <p className={`text-xs font-black uppercase tracking-[2px] ${style.text}`}>
+                      <p
+                        className={`text-xs font-black uppercase tracking-[2px] ${style.text}`}
+                      >
                         {player.position}
                       </p>
 
@@ -160,7 +178,9 @@ function DraftScreen({
                       {player.league}
                     </span>
 
-                    <span className={`rounded-full px-3 py-1 font-black capitalize ${style.badge}`}>
+                    <span
+                      className={`rounded-full px-3 py-1 font-black capitalize ${style.badge}`}
+                    >
                       {style.label}
                     </span>
                   </div>
@@ -168,6 +188,113 @@ function DraftScreen({
               </button>
             );
           })}
+        </div>
+      </div>
+    );
+  }
+
+  function PlayerSlot({ slotIndex, compact = false }) {
+    const position = positions[slotIndex];
+    const player = draftedPlayers[slotIndex];
+    const active = selectedSlot === slotIndex;
+    const style = player ? getTierStyle(player.tier) : null;
+
+    return (
+      <button
+        onClick={() => onOpenDraftOptions(slotIndex)}
+        disabled={!!player}
+        className={`relative overflow-hidden w-full rounded-[1.2rem] border text-left transition shadow-lg ${
+          compact ? "p-2.5 sm:p-3" : "p-4"
+        } ${
+          active
+            ? "border-teal-300 bg-teal-500/20 shadow-teal-500/20 scale-[1.02]"
+            : player
+            ? `${style.border} ${style.bg} ${style.glow}`
+            : "border-teal-400/40 bg-slate-950/80 hover:border-teal-300 hover:bg-teal-500/10 hover:-translate-y-0.5"
+        }`}
+      >
+        <div className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/5 blur-2xl" />
+
+        <div className="relative z-10">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p
+                className={`text-[10px] sm:text-xs font-black uppercase tracking-[2px] ${
+                  player ? style.text : "text-teal-300"
+                }`}
+              >
+                {position}
+              </p>
+
+              {player ? (
+                <>
+                  <p className="text-xs sm:text-sm font-black mt-1 leading-tight truncate">
+                    {player.name}
+                  </p>
+
+                  <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+                    {player.club}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs sm:text-sm font-black mt-1">Select</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500">
+                    Tap slot
+                  </p>
+                </>
+              )}
+            </div>
+
+            {player && (
+              <div
+                className={`shrink-0 rounded-xl px-2 py-1 text-sm sm:text-base font-black ${style.badge}`}
+              >
+                {hideRatings ? "?" : player.rating}
+              </div>
+            )}
+          </div>
+        </div>
+      </button>
+    );
+  }
+
+  function PitchView() {
+    return (
+      <div className="relative overflow-hidden rounded-[2rem] border border-teal-400/30 bg-emerald-950/30 p-4 sm:p-6 min-h-[640px] shadow-inner">
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,_rgba(20,184,166,0.08)_0%,_rgba(20,184,166,0.02)_100%)]" />
+        <div className="absolute inset-4 rounded-[1.5rem] border-2 border-teal-300/20" />
+        <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-teal-300/20" />
+        <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-300/30" />
+        <div className="absolute left-1/2 bottom-4 h-20 w-44 -translate-x-1/2 rounded-t-[2rem] border-2 border-b-0 border-teal-300/20" />
+        <div className="absolute left-1/2 top-4 h-20 w-44 -translate-x-1/2 rounded-b-[2rem] border-2 border-t-0 border-teal-300/20" />
+        <div className="absolute left-4 right-4 top-1/2 h-px bg-teal-300/20" />
+
+        <div className="relative z-10 flex min-h-[600px] flex-col justify-between gap-4">
+          {pitchLayout.map((row, rowIndex) => (
+            <div
+              key={`row-${rowIndex}`}
+              className={`grid gap-3 ${
+                row.length === 1
+                  ? "grid-cols-1 max-w-[190px] mx-auto w-full"
+                  : row.length === 2
+                  ? "grid-cols-2 max-w-[460px] mx-auto w-full"
+                  : row.length === 3
+                  ? "grid-cols-3 max-w-[700px] mx-auto w-full"
+                  : row.length === 4
+                  ? "grid-cols-4 w-full"
+                  : "grid-cols-5 w-full"
+              }`}
+            >
+              {row.map((slotIndex) => (
+                <PlayerSlot
+                  key={`pitch-slot-${slotIndex}`}
+                  slotIndex={slotIndex}
+                  compact
+                />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -226,12 +353,7 @@ function DraftScreen({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <InfoPanel
-                title="Club Limit"
-                value={squadRules.maxPerClub}
-                text="Max per club"
-              />
-
+              <InfoPanel title="Club Limit" value={squadRules.maxPerClub} text="Max per club" />
               <InfoPanel
                 title="Elite / Top"
                 value={`${ruleCounts.eliteOrTopCount}/${squadRules.maxEliteOrTop}`}
@@ -276,7 +398,7 @@ function DraftScreen({
             <div className="flex items-center justify-between gap-4 mb-5">
               <div>
                 <p className="text-xs text-teal-300 font-black uppercase tracking-[3px]">
-                  Formation
+                  Formation Pitch
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-black">
                   Your Team
@@ -289,95 +411,13 @@ function DraftScreen({
               </div>
             </div>
 
-            <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {positions.map((position, index) => {
-                  const player = draftedPlayers[index];
-                  const active = selectedSlot === index;
-                  const style = player ? getTierStyle(player.tier) : null;
+            <PitchView />
 
-                  return (
-                    <div key={`${position}-${index}`} className="space-y-3">
-                      <button
-                        onClick={() => onOpenDraftOptions(index)}
-                        disabled={!!player}
-                        className={`relative overflow-hidden w-full rounded-[1.4rem] border p-4 text-left transition shadow-lg ${
-                          active
-                            ? "border-teal-300 bg-teal-500/20 shadow-teal-500/20"
-                            : player
-                            ? `${style.border} ${style.bg} ${style.glow}`
-                            : "border-slate-700 bg-slate-900 hover:border-teal-400 hover:-translate-y-0.5"
-                        }`}
-                      >
-                        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
-
-                        <div className="relative z-10">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p
-                                className={`text-xs font-black uppercase tracking-[2px] ${
-                                  player ? style.text : "text-teal-300"
-                                }`}
-                              >
-                                {position}
-                              </p>
-
-                              {player ? (
-                                <>
-                                  <p className="text-base sm:text-lg font-black mt-1 leading-tight">
-                                    {player.name}
-                                  </p>
-
-                                  <p className="text-sm text-slate-400 truncate">
-                                    {player.club}
-                                  </p>
-                                </>
-                              ) : (
-                                <>
-                                  <p className="text-base sm:text-lg font-black mt-1">
-                                    Select Player
-                                  </p>
-
-                                  <p className="text-sm text-slate-500">
-                                    Tap to reveal options
-                                  </p>
-                                </>
-                              )}
-                            </div>
-
-                            {player && (
-                              <div
-                                className={`shrink-0 rounded-2xl px-3 py-2 text-xl font-black ${style.badge}`}
-                              >
-                                {hideRatings ? "?" : player.rating}
-                              </div>
-                            )}
-                          </div>
-
-                          {player && (
-                            <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                              <span className="rounded-full bg-slate-950/80 border border-slate-700 px-2.5 py-1 font-bold">
-                                {player.nation}
-                              </span>
-
-                              <span className={`rounded-full px-2.5 py-1 font-black ${style.badge}`}>
-                                {style.label}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </button>
-
-                      {active && (
-                        <div className="lg:hidden">
-                          <DraftOptionsList mobile />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {selectedSlot !== null && (
+              <div className="mt-5 lg:hidden">
+                <DraftOptionsList mobile />
               </div>
-            </div>
+            )}
 
             {isDraftComplete && (
               <button
