@@ -18,11 +18,55 @@ import ResultsScreen from "./components/ResultsScreen";
 
 const fullPlayerPool = [...players, ...additionalPlayers, ...extraPlayers];
 
+const draftConditions = [
+  {
+    id: "classic",
+    title: "Classic Draft",
+    description: "No extra restriction. Build the strongest XI possible.",
+    icon: "🌍",
+  },
+  {
+    id: "maxTwoElite",
+    title: "Maximum 2 Elite Players",
+    description: "You can only draft two elite-tier players in your XI.",
+    icon: "⭐",
+  },
+  {
+    id: "maxFiveEliteTop",
+    title: "Maximum 5 Elite / Top Players",
+    description: "You need to build a balanced squad, not just superstars.",
+    icon: "⚖️",
+  },
+  {
+    id: "maxTwoSameClub",
+    title: "Maximum 2 From One Club",
+    description: "No stacking one club. Spread your squad across teams.",
+    icon: "🏟️",
+  },
+  {
+    id: "maxThreeSameNation",
+    title: "Maximum 3 From One Nation",
+    description: "Build a more international XI with nation variety.",
+    icon: "🌎",
+  },
+  {
+    id: "noWeakPlayers",
+    title: "No Weak Players",
+    description: "Weak-tier players are removed from your draft choices.",
+    icon: "🚫",
+  },
+];
+
+function getRandomDraftCondition() {
+  return draftConditions[Math.floor(Math.random() * draftConditions.length)];
+}
+
 function App() {
   const [screen, setScreen] = useState("home");
   const [formation, setFormation] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
   const [hideRatings, setHideRatings] = useState(false);
+  const [draftCondition, setDraftCondition] = useState(draftConditions[0]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [draftedPlayers, setDraftedPlayers] = useState({});
   const [draftOptionsBySlot, setDraftOptionsBySlot] = useState({});
@@ -55,6 +99,7 @@ function App() {
     setSeasonData(null);
     setCurrentFixtureIndex(0);
     setCopied(false);
+    setDraftCondition(getRandomDraftCondition());
     setScreen("setup");
   }
 
@@ -88,6 +133,68 @@ function App() {
     };
 
     return weights[difficulty]?.[player.tier] || 1;
+  }
+
+  function countDraftedPlayersByKey(key) {
+    const counts = {};
+
+    Object.values(draftedPlayers).forEach((player) => {
+      const value = player[key];
+
+      if (!value) return;
+
+      counts[value] = (counts[value] || 0) + 1;
+    });
+
+    return counts;
+  }
+
+  function getEliteCount() {
+    return Object.values(draftedPlayers).filter(
+      (player) => player.tier === "elite"
+    ).length;
+  }
+
+  function getEliteTopCount() {
+    return Object.values(draftedPlayers).filter(
+      (player) => player.tier === "elite" || player.tier === "top"
+    ).length;
+  }
+
+  function canDraftWithCondition(player) {
+    if (!canDraftPlayer(player, draftedPlayers)) {
+      return false;
+    }
+
+    if (draftCondition.id === "classic") {
+      return true;
+    }
+
+    if (draftCondition.id === "maxTwoElite") {
+      if (player.tier !== "elite") return true;
+      return getEliteCount() < 2;
+    }
+
+    if (draftCondition.id === "maxFiveEliteTop") {
+      if (player.tier !== "elite" && player.tier !== "top") return true;
+      return getEliteTopCount() < 5;
+    }
+
+    if (draftCondition.id === "maxTwoSameClub") {
+      const clubCounts = countDraftedPlayersByKey("club");
+      return (clubCounts[player.club] || 0) < 2;
+    }
+
+    if (draftCondition.id === "maxThreeSameNation") {
+      const nationCounts = countDraftedPlayersByKey("nation");
+      return (nationCounts[player.nation] || 0) < 3;
+    }
+
+    if (draftCondition.id === "noWeakPlayers") {
+      return player.tier !== "weak";
+    }
+
+    return true;
   }
 
   function pickRandomPlayer(pool, alreadySelected) {
@@ -143,7 +250,7 @@ function App() {
     );
 
     const validPlayers = positionPlayers.filter((player) =>
-      canDraftPlayer(player, draftedPlayers)
+      canDraftWithCondition(player)
     );
 
     const availablePlayers =
@@ -197,7 +304,7 @@ function App() {
     if (selectedSlot === null) return;
     if (draftedPlayers[selectedSlot]) return;
 
-    if (!canDraftPlayer(player, draftedPlayers)) {
+    if (!canDraftWithCondition(player)) {
       return;
     }
 
@@ -244,6 +351,7 @@ I finished ${userTeam.position}${getPositionSuffix(
     )} with ${userTeam.points} points on UnbeatenXI.
 
 Difficulty: ${difficulty.toUpperCase()}
+Draft Condition: ${draftCondition.title}
 Record: ${userTeam.wins}W ${userTeam.draws}D ${userTeam.losses}L
 Goals For: ${userTeam.goalsFor}
 Goals Against: ${userTeam.goalsAgainst}
@@ -264,6 +372,7 @@ Can your XI beat mine?`;
       <SetupScreen
         difficulty={difficulty}
         hideRatings={hideRatings}
+        draftCondition={draftCondition}
         onDifficultyChange={setDifficulty}
         onToggleHideRatings={() => setHideRatings(!hideRatings)}
         onContinue={() => setScreen("formation")}

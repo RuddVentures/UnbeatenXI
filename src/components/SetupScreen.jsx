@@ -1,6 +1,7 @@
 function SetupScreen({
   difficulty,
   hideRatings,
+  draftCondition,
   onDifficultyChange,
   onToggleHideRatings,
   onContinue,
@@ -59,6 +60,40 @@ function SetupScreen({
             </p>
           </div>
 
+          <div className="mb-6 rounded-[2rem] border border-yellow-400/60 bg-yellow-400/10 p-5 sm:p-6 shadow-2xl shadow-yellow-500/10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-yellow-300 font-black uppercase tracking-[3px] mb-2">
+                  Random Draft Condition
+                </p>
+
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl shrink-0">
+                    {draftCondition?.icon || "🎲"}
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="text-2xl sm:text-4xl font-black break-words">
+                      {draftCondition?.title || "Classic Draft"}
+                    </h2>
+
+                    <p className="text-sm sm:text-base text-slate-300 mt-2 max-w-3xl break-words">
+                      {draftCondition?.description ||
+                        "No extra restriction. Build the strongest XI possible."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-yellow-300/50 bg-slate-950/70 px-5 py-4 text-center">
+                <p className="text-xs text-slate-400 font-black uppercase">
+                  This Run
+                </p>
+                <p className="text-lg font-black text-yellow-300">Active</p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
             {difficultyOptions.map((option) => {
               const active = difficulty === option.id;
@@ -67,7 +102,7 @@ function SetupScreen({
                 <button
                   key={option.id}
                   onClick={() => onDifficultyChange(option.id)}
-                  className={`group relative overflow-hidden rounded-[2rem] border p-6 text-left transition shadow-2xl ${
+                  className={`group relative overflow-hidden rounded-[2rem] border p-6 text-left transition shadow-2xl min-w-0 ${
                     active
                       ? "border-teal-300 bg-slate-900 shadow-teal-500/20 scale-[1.01]"
                       : "border-slate-800 bg-slate-900/75 hover:border-teal-400 hover:-translate-y-1"
@@ -79,8 +114,8 @@ function SetupScreen({
                     } transition`}
                   />
 
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-8">
+                  <div className="relative z-10 min-w-0">
+                    <div className="flex items-center justify-between gap-4 mb-8">
                       <span
                         className={`rounded-full px-4 py-2 text-xs font-black ${
                           active
@@ -91,18 +126,18 @@ function SetupScreen({
                         {option.badge}
                       </span>
 
-                      <span className="text-4xl">{option.icon}</span>
+                      <span className="text-4xl shrink-0">{option.icon}</span>
                     </div>
 
-                    <h2 className="text-4xl font-black mb-2">
+                    <h2 className="text-4xl font-black mb-2 break-words">
                       {option.title}
                     </h2>
 
-                    <p className="font-black text-slate-200 mb-3">
+                    <p className="font-black text-slate-200 mb-3 break-words">
                       {option.subtitle}
                     </p>
 
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-sm text-slate-400 leading-relaxed break-words">
                       {option.description}
                     </p>
 
@@ -126,7 +161,7 @@ function SetupScreen({
           <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-5 mb-8">
             <button
               onClick={onToggleHideRatings}
-              className={`relative overflow-hidden rounded-[2rem] border p-6 text-left transition ${
+              className={`relative overflow-hidden rounded-[2rem] border p-6 text-left transition min-w-0 ${
                 hideRatings
                   ? "border-yellow-300 bg-yellow-400/10"
                   : "border-slate-800 bg-slate-900/75 hover:border-yellow-400"
@@ -134,18 +169,18 @@ function SetupScreen({
             >
               <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-yellow-400/10 blur-2xl" />
 
-              <div className="relative z-10">
+              <div className="relative z-10 min-w-0">
                 <p className="text-sm text-yellow-300 font-black uppercase tracking-[3px] mb-3">
                   Optional Rule
                 </p>
 
                 <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-3xl font-black mb-2">
+                  <div className="min-w-0">
+                    <h3 className="text-3xl font-black mb-2 break-words">
                       Hide Ratings
                     </h3>
 
-                    <p className="text-slate-400 text-sm max-w-md">
+                    <p className="text-slate-400 text-sm max-w-md break-words">
                       Make each pick more about football knowledge, club links
                       and risk instead of numbers.
                     </p>
@@ -164,15 +199,24 @@ function SetupScreen({
               </div>
             </button>
 
-            <div className="rounded-[2rem] border border-slate-800 bg-slate-900/75 p-6">
+            <div className="rounded-[2rem] border border-slate-800 bg-slate-900/75 p-6 min-w-0">
               <p className="text-sm text-teal-400 font-black uppercase tracking-[3px] mb-4">
                 What changes?
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <InfoCard title="Easy" text="More elite and top-tier options appear in the draft." />
-                <InfoCard title="Medium" text="Balanced mix of stars, good players and risky picks." />
-                <InfoCard title="Hard" text="More rotation and weak players. Chemistry matters more." />
+                <InfoCard
+                  title="Condition"
+                  text="Each run has a random extra rule to make drafts feel different."
+                />
+                <InfoCard
+                  title="Difficulty"
+                  text="Changes the quality mix of players shown during each reveal."
+                />
+                <InfoCard
+                  title="Ratings"
+                  text="Hide numbers for a more unpredictable football knowledge test."
+                />
               </div>
             </div>
           </div>
@@ -180,7 +224,7 @@ function SetupScreen({
           <div className="text-center">
             <button
               onClick={onContinue}
-              className="group rounded-2xl bg-teal-500 px-12 py-5 text-lg font-black text-white shadow-2xl shadow-teal-500/25 hover:bg-teal-400 hover:-translate-y-1 transition"
+              className="group rounded-2xl bg-teal-500 px-10 sm:px-12 py-5 text-lg font-black text-white shadow-2xl shadow-teal-500/25 hover:bg-teal-400 hover:-translate-y-1 transition"
             >
               Continue To Formation
               <span className="inline-block ml-2 group-hover:translate-x-1 transition">
@@ -196,9 +240,9 @@ function SetupScreen({
 
 function InfoCard({ title, text }) {
   return (
-    <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4">
-      <p className="font-black mb-1">{title}</p>
-      <p className="text-slate-400">{text}</p>
+    <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4 min-w-0 overflow-hidden">
+      <p className="font-black mb-1 break-words">{title}</p>
+      <p className="text-slate-400 break-words">{text}</p>
     </div>
   );
 }

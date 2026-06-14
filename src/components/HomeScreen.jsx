@@ -7,15 +7,15 @@ function HomeScreen({ onStartDraft }) {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         <header className="w-full px-4 sm:px-6 py-5">
-          <div className="mx-auto max-w-7xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-teal-500 shadow-lg shadow-teal-500/25 flex items-center justify-center font-black text-xl">
+          <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-11 w-11 shrink-0 rounded-2xl bg-teal-500 shadow-lg shadow-teal-500/25 flex items-center justify-center font-black text-xl">
                 XI
               </div>
 
-              <div>
-                <p className="font-black leading-none">UnbeatenXI</p>
-                <p className="text-xs text-slate-400 font-bold">
+              <div className="min-w-0">
+                <p className="font-black leading-none truncate">UnbeatenXI</p>
+                <p className="text-xs text-slate-400 font-bold truncate">
                   Football Draft Simulator
                 </p>
               </div>
@@ -30,15 +30,15 @@ function HomeScreen({ onStartDraft }) {
 
         <main className="flex-1 flex items-center px-4 sm:px-6 py-6">
           <div className="mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-8 lg:gap-12 items-center">
-            <section className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/40 bg-teal-500/10 px-4 py-2 mb-6">
-                <span className="h-2 w-2 rounded-full bg-teal-400" />
-                <p className="text-xs sm:text-sm font-black tracking-[3px] text-teal-300 uppercase">
+            <section className="text-center lg:text-left min-w-0">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-teal-400/40 bg-teal-500/10 px-4 py-2 mb-6">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-teal-400" />
+                <p className="text-[10px] sm:text-sm font-black tracking-[2px] sm:tracking-[3px] text-teal-300 uppercase break-words text-center">
                   Draft. Simulate. Survive 38.
                 </p>
               </div>
 
-              <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight leading-[0.9] mb-6">
+              <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight leading-[0.9] mb-6 break-words">
                 Unbeaten
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-teal-400 to-yellow-300">
                   XI
@@ -66,41 +66,47 @@ function HomeScreen({ onStartDraft }) {
                   </span>
                 </button>
 
-                <div className="rounded-2xl border border-slate-700 bg-slate-900/70 backdrop-blur px-6 py-4">
+                <div className="rounded-2xl border border-slate-700 bg-slate-900/70 backdrop-blur px-6 py-4 min-w-0">
                   <p className="text-xs text-slate-400 font-black uppercase tracking-[2px]">
                     Target
                   </p>
-                  <p className="text-lg font-black">Can you go 38-0?</p>
+                  <p className="text-lg font-black break-words">
+                    Can you go 38-0?
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 max-w-xl mx-auto lg:mx-0">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-xl mx-auto lg:mx-0">
                 <MiniStat value="600+" label="Players" />
                 <MiniStat value="38" label="Games" />
                 <MiniStat value="0" label="Accounts" />
               </div>
             </section>
 
-            <section className="relative">
+            <section className="relative min-w-0">
               <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-teal-400/20 to-yellow-400/10 blur-2xl" />
 
-              <div className="relative rounded-[2rem] border border-slate-700 bg-slate-900/80 backdrop-blur p-4 sm:p-6 shadow-2xl shadow-black/50">
-                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-5 mb-5">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="text-xs font-black text-teal-400 uppercase tracking-[3px]">
+              <div className="relative rounded-[2rem] border border-slate-700 bg-slate-900/80 backdrop-blur p-3 sm:p-6 shadow-2xl shadow-black/50">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 sm:p-5 mb-5">
+                  <div className="flex items-center justify-between gap-3 mb-5">
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs font-black text-teal-400 uppercase tracking-[2px] sm:tracking-[3px] break-words">
                         Draft Preview
                       </p>
-                      <h2 className="text-2xl font-black">Your XI</h2>
+                      <h2 className="text-2xl font-black truncate">
+                        Your XI
+                      </h2>
                     </div>
 
-                    <div className="rounded-2xl bg-teal-500 px-4 py-3 text-center">
-                      <p className="text-xs font-black">CHEM</p>
-                      <p className="text-2xl font-black">87</p>
+                    <div className="shrink-0 rounded-2xl bg-teal-500 px-3 sm:px-4 py-3 text-center">
+                      <p className="text-[10px] sm:text-xs font-black">
+                        CHEM
+                      </p>
+                      <p className="text-xl sm:text-2xl font-black">87</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     <PlayerCard rating="94" name="Elite ST" tier="Gold" />
                     <PlayerCard rating="88" name="Top CM" tier="Purple" />
                     <PlayerCard rating="82" name="Good CB" tier="Blue" />
@@ -110,27 +116,43 @@ function HomeScreen({ onStartDraft }) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-5">
-                  <FeatureCard number="01" title="Draft" text="Pick one player per position." />
-                  <FeatureCard number="02" title="Chemistry" text="Link clubs, nations and leagues." />
-                  <FeatureCard number="03" title="Season" text="Simulate all 38 matches." />
-                  <FeatureCard number="04" title="Share" text="Beat your best score." />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
+                  <FeatureCard
+                    number="01"
+                    title="Draft"
+                    text="Pick one player per position."
+                  />
+                  <FeatureCard
+                    number="02"
+                    title="Chemistry"
+                    text="Link clubs, nations and leagues."
+                  />
+                  <FeatureCard
+                    number="03"
+                    title="Season"
+                    text="Simulate all 38 matches."
+                  />
+                  <FeatureCard
+                    number="04"
+                    title="Share"
+                    text="Beat your best score."
+                  />
                 </div>
 
-                <div className="rounded-3xl border border-yellow-400/60 bg-yellow-400/10 p-5">
-                  <p className="text-xs font-black text-yellow-300 uppercase tracking-[3px] mb-2">
+                <div className="rounded-3xl border border-yellow-400/60 bg-yellow-400/10 p-4 sm:p-5">
+                  <p className="text-[10px] sm:text-xs font-black text-yellow-300 uppercase tracking-[2px] sm:tracking-[3px] mb-2 break-words">
                     Perfect Season
                   </p>
 
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    <div className="min-w-0">
                       <p className="text-5xl font-black">38-0</p>
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-sm text-slate-400 mt-1 break-words">
                         The ultimate UnbeatenXI challenge.
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="sm:text-right">
                       <p className="text-xs text-slate-500 font-black">
                         MODE
                       </p>
@@ -146,7 +168,7 @@ function HomeScreen({ onStartDraft }) {
         </main>
 
         <footer className="relative z-10 px-4 sm:px-6 py-5">
-          <p className="text-center text-xs text-slate-600">
+          <p className="text-center text-xs text-slate-600 break-words">
             UnbeatenXI Beta • Free browser football draft simulator
           </p>
         </footer>
@@ -157,36 +179,45 @@ function HomeScreen({ onStartDraft }) {
 
 function MiniStat({ value, label }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-center">
-      <p className="text-2xl font-black text-white">{value}</p>
-      <p className="text-xs text-slate-400 font-bold uppercase">{label}</p>
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 sm:p-4 text-center min-w-0 overflow-hidden">
+      <p className="text-xl sm:text-2xl font-black text-white truncate">
+        {value}
+      </p>
+      <p className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase break-words leading-tight">
+        {label}
+      </p>
     </div>
   );
 }
 
 function PlayerCard({ rating, name, tier }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="rounded-lg bg-slate-950 px-2 py-1 text-sm font-black text-teal-300">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-2.5 sm:p-3 min-w-0 overflow-hidden">
+      <div className="mb-3 flex items-center justify-between gap-2 min-w-0">
+        <span className="shrink-0 rounded-lg bg-slate-950 px-2 py-1 text-xs sm:text-sm font-black text-teal-300">
           {rating}
         </span>
-        <span className="text-[10px] font-black uppercase text-slate-500">
+
+        <span className="min-w-0 text-[9px] sm:text-[10px] font-black uppercase text-slate-500 truncate">
           {tier}
         </span>
       </div>
 
-      <p className="text-sm font-black leading-tight">{name}</p>
+      <p className="text-xs sm:text-sm font-black leading-tight break-words">
+        {name}
+      </p>
     </div>
   );
 }
 
 function FeatureCard({ number, title, text }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 min-w-0 overflow-hidden">
       <p className="text-xs font-black text-teal-400 mb-1">{number}</p>
-      <h3 className="font-black">{title}</h3>
-      <p className="text-xs text-slate-400 mt-1">{text}</p>
+      <h3 className="font-black break-words">{title}</h3>
+      <p className="text-xs text-slate-400 mt-1 break-words leading-relaxed">
+        {text}
+      </p>
     </div>
   );
 }
